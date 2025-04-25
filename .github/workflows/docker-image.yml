@@ -26,7 +26,7 @@ jobs:
         run: |
           TIMESTAMP=$(date +%s)
           # Erzwungene Kleinschreibung, um ungültige Zeichen zu vermeiden
-          USER_LOWER=$(echo "${{ env.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+          USER_LOWER=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_TAG="$USER_LOWER/${{ env.IMAGE_NAME }}:$TIMESTAMP"
           LATEST_TAG="$USER_LOWER/${{ env.IMAGE_NAME }}:latest"
           echo "Using IMAGE_TAG=$IMAGE_TAG"
