@@ -21,21 +21,30 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and tag the Docker image
+      - name: Prepare and export image tags
+        id: tag
         run: |
           TIMESTAMP=$(date +%s)
-          IMAGE_TAG="${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${TIMESTAMP}"
-          LATEST_TAG="${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest"
+          # Erzwungene Kleinschreibung, um ungültige Zeichen zu vermeiden
+          USER_LOWER=$(echo "${{ env.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG="$USER_LOWER/${{ env.IMAGE_NAME }}:$TIMESTAMP"
+          LATEST_TAG="$USER_LOWER/${{ env.IMAGE_NAME }}:latest"
+          echo "Using IMAGE_TAG=$IMAGE_TAG"
+          echo "Using LATEST_TAG=$LATEST_TAG"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
+      - name: Build and tag the Docker image
+        run: |
           echo "Building image $IMAGE_TAG"
-          docker build . \
-            --file Dockerfile \
-            --tag "$IMAGE_TAG"
+          docker build . --file Dockerfile --tag "$IMAGE_TAG"
 
           echo "Tagging image as latest"
           docker tag "$IMAGE_TAG" "$LATEST_TAG"
 
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker images to Docker Hub
         run: |
-          docker push "${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${TIMESTAMP}"
-          docker push "${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest"
+          echo "Pushing $IMAGE_TAG"
+          docker push "$IMAGE_TAG"
+          echo "Pushing $LATEST_TAG"
+          docker push "$LATEST_TAG"
