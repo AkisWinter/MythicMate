@@ -1,6 +1,6 @@
 services:
   discord-bot:
-    build: .
+    image: akiteck/mythicmate-discord-bot:latest
     container_name: mythicmate-bot
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
