@@ -147,7 +147,7 @@ async def update_group_embed(message, embed, group_state):
 @app_commands.describe(
     dungeon="Enter the dungeon name or abbreviation",
     key_level="Enter the key level (e.g., +10)",
-    role="Select your role in the group",
+    role="Select your role in the group (Tank, Healer, or DPS)",
     schedule="When to run (e.g., 'now' or 'YYYY-MM-DD HH:MM' in server time)",
     intime="Key should be in time for RIO (yes / no)"
 )
@@ -163,7 +163,25 @@ async def lfm(
         intime = "✅ Yes"
     else:
         intime = "❌ No"
-        
+    
+    # Normalize role input
+    role = role.strip().lower()
+    
+    # Validate role
+    valid_roles = {
+        "tank": "Tank",
+        "healer": "Healer",
+        "dps": "DPS"}
+    if role not in valid_roles:
+        await interaction.response.send_message(
+            f"Invalid role '{role}'. Allowed roles are: Tank, Healer, or DPS.",
+            ephemeral=True
+        )
+        return
+    
+    # Assign normalized role
+    role = valid_roles[role]
+    
     print(f"LFM command received from {interaction.user}")
     print("Starting LFM command...")
     
