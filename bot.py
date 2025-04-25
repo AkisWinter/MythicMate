@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+from discord.app_commands import Choice
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -147,9 +148,22 @@ async def update_group_embed(message, embed, group_state):
     dungeon="Enter the dungeon name or abbreviation",
     key_level="Enter the key level (e.g., +10)",
     role="Select your role in the group",
-    schedule="When to run (e.g., 'now' or 'YYYY-MM-DD HH:MM' in server time)"
+    schedule="When to run (e.g., 'now' or 'YYYY-MM-DD HH:MM' in server time)",
+    intime="Key should be in time for RIO (yes / no)"
 )
-async def lfm(interaction: discord.Interaction, dungeon: str, key_level: str, role: str, schedule: str):
+async def lfm(
+    interaction: discord.Interaction,
+    dungeon: str,
+    key_level: str,
+    role: str,
+    schedule: str,
+    intime: str
+):
+    if intime.lower() in ["yes", "y", "ja", "j"]:
+        intime = "✅ Yes"
+    else:
+        intime = "❌ No"
+        
     print(f"LFM command received from {interaction.user}")
     print("Starting LFM command...")
     
@@ -185,18 +199,20 @@ async def lfm(interaction: discord.Interaction, dungeon: str, key_level: str, ro
 
     # Format schedule string and send initial response
     schedule_str = "now" if not schedule_time else schedule_time.strftime("%Y-%m-%d %H:%M")
+    
     await interaction.response.defer()
 
     # Initialize group state and create embed
     group_state = GroupState(interaction, role, schedule_time)
     embed = discord.Embed(
         title=f"Dungeon: {full_dungeon_name}",
-        description=f"Difficulty: {key_level}\nScheduled: {schedule_str}",
+        description=f"Difficulty: {key_level}\nMust in time?: {intime}\nScheduled: {schedule_str}",
         color=discord.Color.blue()
     )
-    embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar.url)
+    avatar_url = interaction.user.avatar.url if interaction.user.avatar else "https://cdn.discordapp.com/embed/avatars/0.png"
+    embed.set_author(name=interaction.user.display_name, icon_url=avatar_url)
     embed.set_thumbnail(url="https://example.com/path/to/your/image.png")
-
+    
     # Create and store group message - Changed to use channel.send instead of interaction.followup
     group_message = await interaction.channel.send(embed=embed)
     active_groups[group_message.id] = {
